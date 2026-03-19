@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI PM Tool — PM Survey</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+  :root {
+    --bg: #090d18;
+    --bg-accent-1: #1e2a52;
+    --bg-accent-2: #0f8f97;
+    --card-bg: rgba(248, 251, 255, 0.94);
+    --card-border: rgba(255, 255, 255, 0.55);
+    --text-main: #131724;
+    --text-soft: #5f6679;
+    --text-muted: #80869a;
+    --brand: #2f63f5;
+    --brand-2: #3a9be8;
+    --chip-bg: rgba(237, 242, 255, 0.75);
+    --chip-border: rgba(46, 81, 176, 0.22);
+    --chip-hover: rgba(227, 236, 255, 1);
+    --radius-xl: 28px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --shadow-card: 0 30px 80px rgba(9, 12, 26, 0.35);
+    --shadow-soft: 0 10px 24px rgba(19, 23, 36, 0.11);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(58, 155, 232, 0.32), transparent 35%),
+      radial-gradient(circle at 90% 0%, rgba(47, 99, 245, 0.22), transparent 40%),
+      linear-gradient(135deg, var(--bg), #0b1020 45%, #111b35 100%);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1rem;
+  }
+
+  .container {
+    position: relative;
+    background: var(--card-bg);
+    backdrop-filter: blur(18px);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-card);
+    padding: 2.25rem;
+    width: 100%;
+    max-width: 760px;
+    height: fit-content;
+    overflow: hidden;
+  }
+
+  .container::before {
+    content: "";
+    position: absolute;
+    inset: -120px auto auto -120px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(58, 155, 232, 0.22), transparent 70%);
+    pointer-events: none;
+  }
+
+  .container::after {
+    content: "";
+    position: absolute;
+    inset: auto -140px -140px auto;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(47, 99, 245, 0.2), transparent 72%);
+    pointer-events: none;
+  }
+
+  .container > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  .progress-wrap { margin-bottom: 2rem; }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .progress-track {
+    height: 8px;
+    background: rgba(142, 157, 191, 0.26);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand), var(--brand-2));
+    border-radius: 99px;
+    transition: width .4s ease;
+  }
+  .section { display: none; }
+  .section.active {
+    display: block;
+    animation: sectionIn .34s ease;
+  }
+  @keyframes sectionIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .sec-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .09em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .sec-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: clamp(1.55rem, 2.3vw, 2rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+  .sec-desc {
+    font-size: 14px;
+    color: var(--text-soft);
+    margin-bottom: 1.65rem;
+    line-height: 1.7;
+  }
+  .q-block {
+    margin-bottom: 1.35rem;
+    padding: 1rem;
+    border: 1px solid rgba(102, 118, 158, 0.16);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.62);
+  }
+  .q-label {
+    font-size: 14px;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 9px;
+    line-height: 1.55;
+  }
+  .q-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.55; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 99px;
+    border: 1px solid var(--chip-border);
+    cursor: pointer;
+    background: var(--chip-bg);
+    color: var(--text-soft);
+    transition: all .17s ease;
+    user-select: none;
+  }
+  .chip:hover { background: var(--chip-hover); transform: translateY(-1px); }
+  .chip.sel {
+    background: linear-gradient(125deg, rgba(47, 99, 245, 0.16), rgba(58, 155, 232, 0.16));
+    color: #1942b4;
+    border-color: rgba(47, 99, 245, 0.4);
+    box-shadow: 0 6px 16px rgba(48, 89, 214, 0.2);
+  }
+  .scale-row { display: flex; gap: 6px; align-items: center; }
+  .scale-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--chip-border);
+    cursor: pointer;
+    background: var(--chip-bg);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-soft);
+    transition: all .17s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scale-btn:hover { background: var(--chip-hover); transform: translateY(-1px); }
+  .scale-btn.sel {
+    background: linear-gradient(140deg, rgba(47, 99, 245, 0.16), rgba(58, 155, 232, 0.16));
+    color: #1942b4;
+    border-color: rgba(47, 99, 245, 0.4);
+    box-shadow: 0 6px 16px rgba(48, 89, 214, 0.2);
+  }
+  .scale-ends {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 7px;
+    font-weight: 500;
+  }
+  textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(102, 118, 158, 0.25);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-main);
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical; min-height: 80px; line-height: 1.6;
+  }
+  textarea:focus {
+    outline: none;
+    border-color: rgba(47, 99, 245, 0.6);
+    box-shadow: 0 0 0 4px rgba(47, 99, 245, 0.14);
+  }
+  input[type=email],
+  input[type=text] {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(102, 118, 158, 0.25);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-main);
+    font-size: 13px;
+    font-family: inherit;
+  }
+  input[type=email]:focus,
+  input[type=text]:focus {
+    outline: none;
+    border-color: rgba(47, 99, 245, 0.6);
+    box-shadow: 0 0 0 4px rgba(47, 99, 245, 0.14);
+  }
+  .other-input-wrap {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(72, 103, 188, 0.24);
+    background: linear-gradient(140deg, rgba(222, 233, 255, 0.55), rgba(231, 243, 255, 0.72));
+  }
+  .other-input-wrap input[type=text] {
+    border-color: rgba(72, 103, 188, 0.32);
+    background: rgba(247, 251, 255, 0.95);
+    color: #1a2a59;
+    font-weight: 500;
+  }
+  .other-input-wrap input[type=text]::placeholder {
+    color: #6274a9;
+  }
+  .nav-row { display: flex; gap: 10px; margin-top: 1.5rem; align-items: center; }
+  .btn-back {
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(99, 119, 166, 0.32);
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .17s ease;
+  }
+  .btn-back:hover { background: rgba(255, 255, 255, 0.92); transform: translateY(-1px); }
+  .btn-next {
+    padding: 10px 22px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(47, 99, 245, 0.32);
+    background: linear-gradient(120deg, var(--brand), var(--brand-2));
+    color: #f6f9ff;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 12px 22px rgba(47, 99, 245, 0.28);
+    transition: all .17s ease;
+  }
+  .btn-next:hover { transform: translateY(-1px); filter: brightness(1.06); }
+  .btn-next:disabled { opacity: .78; cursor: not-allowed; transform: none; }
+  .note-box {
+    background: linear-gradient(135deg, rgba(47, 99, 245, 0.12), rgba(58, 155, 232, 0.14));
+    border: 1px solid rgba(47, 99, 245, 0.22);
+    border-radius: var(--radius-lg);
+    padding: 14px 15px;
+    font-size: 13px;
+    color: #1f336c;
+    margin-bottom: 1.25rem;
+    line-height: 1.65;
+  }
+  .pain-label { font-size: 13px; color: var(--text-soft); margin-bottom: 8px; font-weight: 500; }
+  .pain-block { margin-bottom: 14px; }
+  .time-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 4px 9px;
+    border-radius: 99px;
+    background: rgba(47, 99, 245, 0.1);
+    color: #0ade38;
+    border: 1px solid rgba(47, 99, 245, 0.26);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .thankyou { text-align: center; padding: 2.5rem 0; }
+  .thankyou-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--brand);
+    text-shadow: 0 7px 18px rgba(47, 99, 245, 0.3);
+  }
+  .thankyou-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 10px;
+  }
+  .thankyou-desc { font-size: 14px; color: var(--text-soft); line-height: 1.75; }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --card-bg: rgba(16, 21, 36, 0.88);
+      --card-border: rgba(116, 135, 179, 0.22);
+      --text-main: #e8eeff;
+      --text-soft: #b5c1e6;
+      --text-muted: #8f9cbe;
+      --chip-bg: rgba(58, 76, 120, 0.3);
+      --chip-border: rgba(110, 136, 203, 0.35);
+      --chip-hover: rgba(77, 98, 151, 0.4);
+      --shadow-card: 0 30px 80px rgba(3, 6, 12, 0.62);
+    }
+
+    .q-block {
+      border-color: rgba(95, 120, 190, 0.34);
+      background: rgba(16, 23, 42, 0.55);
+    }
+    .chip.sel {
+      background: linear-gradient(140deg, rgba(84, 128, 255, 0.45), rgba(41, 187, 255, 0.36));
+      color: #f4f8ff;
+      border-color: rgba(154, 189, 255, 0.8);
+      box-shadow: 0 8px 20px rgba(53, 116, 255, 0.34);
+    }
+    .scale-btn.sel {
+      background: linear-gradient(140deg, rgba(84, 128, 255, 0.45), rgba(41, 187, 255, 0.36));
+      color: #f4f8ff;
+      border-color: rgba(154, 189, 255, 0.8);
+      box-shadow: 0 8px 20px rgba(53, 116, 255, 0.34);
+    }
+    textarea, input[type=email] {
+      background: rgba(16, 23, 42, 0.75);
+      color: var(--text-main);
+      border-color: rgba(106, 131, 197, 0.34);
+    }
+    .progress-track { background: rgba(94, 114, 166, 0.34); }
+    .note-box {
+      color: #cbdbff;
+      border-color: rgba(98, 140, 255, 0.38);
+      background: linear-gradient(135deg, rgba(39, 74, 170, 0.3), rgba(19, 111, 161, 0.28));
+    }
+    .other-input-wrap {
+      border-color: rgba(97, 124, 194, 0.44);
+      background: linear-gradient(140deg, rgba(30, 49, 92, 0.6), rgba(28, 64, 97, 0.58));
+    }
+    .other-input-wrap input[type=text] {
+      border-color: rgba(120, 153, 233, 0.5);
+      background: rgba(16, 29, 58, 0.8);
+      color: #dbe7ff;
+    }
+    .other-input-wrap input[type=text]::placeholder {
+      color: #9db4e7;
+    }
+    .btn-back {
+      color: var(--text-soft);
+      border-color: rgba(106, 131, 197, 0.34);
+      background: rgba(22, 33, 60, 0.65);
+    }
+    .btn-back:hover { background: rgba(39, 52, 88, 0.76); }
+    #s-done span { color: var(--text-muted) !important; }
+  }
+
+  @media (max-width: 700px) {
+    body { padding: 1.2rem .75rem; }
+    .container { padding: 1.3rem; border-radius: 20px; }
+    .q-block { padding: .85rem; }
+    .nav-row { margin-top: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="prog-label">Section 1 of 6</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="prog-bar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- S1 -->
+  <div class="section active" id="s1">
+    <div class="sec-label">Section 1 — About you</div>
+    <div class="sec-title">Quick context <span class="time-badge">~1 min</span></div>
+    <div class="sec-desc">Just 3 questions to help us understand your situation.</div>
+
+    <div class="q-block">
+      <div class="q-label">Your role</div>
+      <div class="chip-row" id="q-role">
+        <div class="chip" onclick="single(this,'q-role')">PM</div>
+        <div class="chip" onclick="single(this,'q-role')">Senior PM</div>
+        <div class="chip" onclick="single(this,'q-role')">Head of Product</div>
+        <div class="chip" onclick="single(this,'q-role')">Founder / PM</div>
+        <div class="chip" onclick="single(this,'q-role')">Other</div>
+      </div>
+      <div id="role-other-block" class="other-input-wrap" style="display:none">
+        <input type="text" id="q-role-other" placeholder="Enter your role" required>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">Company size</div>
+      <div class="chip-row" id="q-size">
+        <div class="chip" onclick="single(this,'q-size')">1–20</div>
+        <div class="chip" onclick="single(this,'q-size')">20–200</div>
+        <div class="chip" onclick="single(this,'q-size')">200+</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">Primary task tracker</div>
+      <div class="chip-row" id="q-tracker">
+        <div class="chip" onclick="single(this,'q-tracker')">Jira</div>
+        <div class="chip" onclick="single(this,'q-tracker')">Linear</div>
+        <div class="chip" onclick="single(this,'q-tracker')">Notion</div>
+        <div class="chip" onclick="single(this,'q-tracker')">Asana</div>
+        <div class="chip" onclick="single(this,'q-tracker')">Other</div>
+      </div>
+      <div id="tracker-other-block" class="other-input-wrap" style="display:none">
+        <input type="text" id="q-tracker-other" placeholder="Enter your task tracker" required>
+      </div>
+    </div>
+
+    <div class="nav-row"><button class="btn-next" onclick="goTo(2)">Next →</button></div>
+  </div>
+
+  <!-- S2 -->
+  <div class="section" id="s2">
+    <div class="sec-label">Section 2 — Your week</div>
+    <div class="sec-title">Where does your time go? <span class="time-badge">~1 min</span></div>
+
+    <div class="q-block">
+      <div class="q-label">Weekly hours on writing PRDs / specs</div>
+      <div class="chip-row" id="q-prd-time">
+        <div class="chip" onclick="single(this,'q-prd-time')">0–1 h</div>
+        <div class="chip" onclick="single(this,'q-prd-time')">2–4 h</div>
+        <div class="chip" onclick="single(this,'q-prd-time')">5–8 h</div>
+        <div class="chip" onclick="single(this,'q-prd-time')">8+ h</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">How do you typically turn a raw idea (Slack message, meeting note, customer call) into a ticket or PRD today?</div>
+      <div class="q-sub">Be as messy and honest as you like — this is the most useful question for us.</div>
+      <textarea id="q-workflow" placeholder="e.g. I copy the Slack thread into Notion, write a rough brief, then spend 2 hrs turning it into a PRD before grooming..." required></textarea>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goTo(1)">← Back</button>
+      <button class="btn-next" onclick="goTo(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- S3 -->
+  <div class="section" id="s3">
+    <div class="sec-label">Section 3 — Pain points</div>
+    <div class="sec-title">Where it hurts <span class="time-badge">~1.5 min</span></div>
+
+    <div class="q-block">
+      <div class="q-label">Rate each area: how painful is it right now? (1 = fine, 5 = extremely painful)</div>
+      <div id="pain-scales"></div>
+    </div>
+
+    <div class="q-block" style="margin-top:1rem">
+      <div class="q-label">If you could remove one recurring frustration from your PM workflow, what would it be?</div>
+      <textarea id="q-frustration" placeholder="The thing that makes me groan every week is..." required></textarea>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goTo(2)">← Back</button>
+      <button class="btn-next" onclick="goTo(4)">Next →</button>
+    </div>
+  </div>
+
+  <!-- S4 -->
+  <div class="section" id="s4">
+    <div class="sec-label">Section 4 — AI today</div>
+    <div class="sec-title">How you use AI now <span class="time-badge">~1 min</span></div>
+
+    <div class="q-block">
+      <div class="q-label">Have you used AI in your PM work?</div>
+      <div class="chip-row" id="q-ai-use">
+        <div class="chip" onclick="single(this,'q-ai-use')">Yes, regularly</div>
+        <div class="chip" onclick="single(this,'q-ai-use')">Occasionally</div>
+        <div class="chip" onclick="single(this,'q-ai-use')">Tried, not using now</div>
+        <div class="chip" onclick="single(this,'q-ai-use')">Not yet</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">What do you use AI for? (select all that apply)</div>
+      <div class="chip-row" id="q-ai-tasks">
+        <div class="chip" onclick="multi(this)">Drafting PRDs</div>
+        <div class="chip" onclick="multi(this)">Summarizing interviews</div>
+        <div class="chip" onclick="multi(this)">Writing tickets</div>
+        <div class="chip" onclick="multi(this)">Generating ideas</div>
+        <div class="chip" onclick="multi(this)">Analyzing data</div>
+        <div class="chip" onclick="multi(this)">Release notes</div>
+        <div class="chip" onclick="multi(this)">Other</div>
+      </div>
+      <div id="ai-tasks-other-block" class="other-input-wrap" style="display:none">
+        <input type="text" id="q-ai-tasks-other" placeholder="Enter other AI use case" required>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">What disappointed you about AI tools for PM work, if anything?</div>
+      <textarea id="q-ai-disappoint" placeholder="The outputs were too generic, didn't know our product context, required too much editing..." required></textarea>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goTo(3)">← Back</button>
+      <button class="btn-next" onclick="goTo(5)">Next →</button>
+    </div>
+  </div>
+
+  <!-- S5 -->
+  <div class="section" id="s5">
+    <div class="sec-label">Section 5 — Concept reaction</div>
+    <div class="sec-title">React to this idea <span class="time-badge">~1 min</span></div>
+
+    <div class="note-box">
+      <strong>The concept:</strong> You paste a Slack thread, meeting notes, or a rough idea. The tool extracts the problem, writes a structured PRD, breaks it into Jira tickets (and pushes them), then drafts a release note — all in one pipeline, with you approving each step.
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">How valuable would this pipeline be for you? (1 = not at all, 5 = extremely valuable)</div>
+      <div class="scale-row" id="q-value">
+        <div class="scale-btn" onclick="scaleClick(this,'q-value')">1</div>
+        <div class="scale-btn" onclick="scaleClick(this,'q-value')">2</div>
+        <div class="scale-btn" onclick="scaleClick(this,'q-value')">3</div>
+        <div class="scale-btn" onclick="scaleClick(this,'q-value')">4</div>
+        <div class="scale-btn" onclick="scaleClick(this,'q-value')">5</div>
+      </div>
+      <div class="scale-ends"><span>Not valuable</span><span>Extremely valuable</span></div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">Which stage matters most to you personally?</div>
+      <div class="chip-row" id="q-stage">
+        <div class="chip" onclick="single(this,'q-stage')">Input → problem extraction</div>
+        <div class="chip" onclick="single(this,'q-stage')">PRD generation</div>
+        <div class="chip" onclick="single(this,'q-stage')">Jira ticket creation</div>
+        <div class="chip" onclick="single(this,'q-stage')">Release note draft</div>
+        <div class="chip" onclick="single(this,'q-stage')">All equally</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">What would make you stop using such a tool? (select all that apply)</div>
+      <div class="chip-row" id="q-churn">
+        <div class="chip" onclick="multi(this)">Hallucinations / wrong info</div>
+        <div class="chip" onclick="multi(this)">Hard to integrate</div>
+        <div class="chip" onclick="multi(this)">Too much setup</div>
+        <div class="chip" onclick="multi(this)">Privacy concerns</div>
+        <div class="chip" onclick="multi(this)">Team doesn't trust AI</div>
+        <div class="chip" onclick="multi(this)">Output needs too much editing</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goTo(4)">← Back</button>
+      <button class="btn-next" onclick="goTo(6)">Next →</button>
+    </div>
+  </div>
+
+  <!-- S6 -->
+  <div class="section" id="s6">
+    <div class="sec-label">Section 6 — Pricing &amp; follow-up</div>
+    <div class="sec-title">Almost done <span class="time-badge">~30 sec</span></div>
+
+    <div class="q-block">
+      <div class="q-label">If this saved you 3–5 hours per week, what monthly price feels fair (per PM)?</div>
+      <div class="chip-row" id="q-price">
+        <div class="chip" onclick="single(this,'q-price')">Under $20</div>
+        <div class="chip" onclick="single(this,'q-price')">$20–$49</div>
+        <div class="chip" onclick="single(this,'q-price')">$50–$99</div>
+        <div class="chip" onclick="single(this,'q-price')">$100+</div>
+        <div class="chip" onclick="single(this,'q-price')">Depends on features</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">Who approves tools like this at your company?</div>
+      <div class="chip-row" id="q-buyer">
+        <div class="chip" onclick="single(this,'q-buyer')">Me (self-serve)</div>
+        <div class="chip" onclick="single(this,'q-buyer')">Head of Product</div>
+        <div class="chip" onclick="single(this,'q-buyer')">CTO / Engineering</div>
+        <div class="chip" onclick="single(this,'q-buyer')">CEO / Founder</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">Open to a 20-min follow-up chat? (you'd get early free access)</div>
+      <div class="chip-row" id="q-followup">
+        <div class="chip" onclick="single(this,'q-followup')">Yes, reach out</div>
+        <div class="chip" onclick="single(this,'q-followup')">Maybe later</div>
+        <div class="chip" onclick="single(this,'q-followup')">No thanks</div>
+      </div>
+    </div>
+
+    <div class="q-block" id="email-block">
+      <div class="q-label">Your email or LinkedIn</div>
+      <input type="email" id="q-email" placeholder="you@company.com" required>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="goTo(5)">← Back</button>
+      <button class="btn-next" onclick="submit()">Submit →</button>
+    </div>
+  </div>
+
+  <!-- Done -->
+  <div class="section" id="s-done">
+    <div class="thankyou">
+      <div class="thankyou-icon">✓</div>
+      <div class="thankyou-title">Thank you — that's really helpful.</div>
+      <div class="thankyou-desc">
+        Your answers will directly shape what we build.<br>
+        If you said yes to a follow-up, expect a message within 48 hours.<br><br>
+        <span style="color:#888780;font-size:13px">— built by a solo founder who wants to save PMs hours every week</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const painAreas = [
+  'Clarifying the problem / opportunity',
+  'Writing and maintaining PRDs',
+  'Breaking PRDs into tickets',
+  'Aligning with engineering',
+  'Stakeholder communication',
+  'Post-launch measurement',
+];
+
+function buildPainScales() {
+  const c = document.getElementById('pain-scales');
+  painAreas.forEach((label, i) => {
+    const block = document.createElement('div');
+    block.className = 'pain-block';
+    block.innerHTML = `
+      <div class="pain-label">${label}</div>
+      <div class="scale-row" id="pain-${i}">
+        ${[1,2,3,4,5].map(n => `<div class="scale-btn" onclick="scaleClick(this,'pain-${i}')">${n}</div>`).join('')}
+      </div>`;
+    c.appendChild(block);
+  });
+}
+
+function single(el, groupId) {
+  document.querySelectorAll(`#${groupId} .chip`).forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  if (groupId === 'q-role') {
+    const showRoleOther = el.textContent.trim() === 'Other';
+    document.getElementById('role-other-block').style.display = showRoleOther ? 'block' : 'none';
+    if (!showRoleOther) document.getElementById('q-role-other').value = '';
+  }
+  if (groupId === 'q-tracker') {
+    const showTrackerOther = el.textContent.trim() === 'Other';
+    document.getElementById('tracker-other-block').style.display = showTrackerOther ? 'block' : 'none';
+    if (!showTrackerOther) document.getElementById('q-tracker-other').value = '';
+  }
+}
+
+function multi(el) {
+  el.classList.toggle('sel');
+  const parentId = el.parentElement ? el.parentElement.id : '';
+  if (parentId === 'q-ai-tasks') {
+    const showAiOther = [...document.querySelectorAll('#q-ai-tasks .chip.sel')]
+      .some(chip => chip.textContent.trim() === 'Other');
+    document.getElementById('ai-tasks-other-block').style.display = showAiOther ? 'block' : 'none';
+    if (!showAiOther) document.getElementById('q-ai-tasks-other').value = '';
+  }
+}
+
+function scaleClick(el, groupId) {
+  document.querySelectorAll(`#${groupId} .scale-btn`).forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function goTo(n) {
+  const currentSection = document.querySelector('.section.active');
+  if (typeof n === 'number' && currentSection && currentSection.id.startsWith('s')) {
+    const currentIndex = Number(currentSection.id.replace('s', ''));
+    if (n > currentIndex && !validateSection(currentIndex)) {
+      return;
+    }
+  }
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const target = n === 'done' ? 's-done' : `s${n}`;
+  document.getElementById(target).classList.add('active');
+  if (n !== 'done') {
+    const pct = Math.round(((n - 1) / 6) * 100);
+    document.getElementById('prog-bar').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent = pct + '%';
+    document.getElementById('prog-label').textContent = `Section ${n} of 6`;
+  } else {
+    document.getElementById('prog-bar').style.width = '100%';
+    document.getElementById('prog-pct').textContent = '100%';
+    document.getElementById('prog-label').textContent = 'Complete';
+  }
+  window.scrollTo(0, 0);
+}
+
+// ─── REPLACE THIS WITH YOUR APPS SCRIPT DEPLOYMENT URL ───
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyBc2sJ94qH0iwXPQl9YZ6e45KbYB9ymwITGJm3dUe5_YI5N-AN-GXNDFATg7x8bZM/exec';
+
+function getSelected(groupId) {
+  return [...document.querySelectorAll(`#${groupId} .chip.sel`)]
+    .map(c => c.textContent.trim()).join(', ') || '';
+}
+
+function getSelectedWithOther(groupId, otherInputId) {
+  const values = [...document.querySelectorAll(`#${groupId} .chip.sel`)]
+    .map(c => c.textContent.trim());
+  const otherText = document.getElementById(otherInputId).value.trim();
+  const hasOther = values.includes('Other');
+
+  if (hasOther && otherText) {
+    return values.map(v => v === 'Other' ? `Other: ${otherText}` : v).join(', ');
+  }
+  return values.join(', ') || '';
+}
+
+function getScale(groupId) {
+  const sel = document.querySelector(`#${groupId} .scale-btn.sel`);
+  return sel ? sel.textContent.trim() : '';
+}
+
+function getLocalDateTimeString(date) {
+  const pad = (num) => String(num).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+    + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+function collectData() {
+  const now = new Date();
+  const painLabels = [
+    'pain_clarifying', 'pain_writing_prd', 'pain_tickets',
+    'pain_engineering', 'pain_stakeholders', 'pain_postlaunch'
+  ];
+  const painScores = {};
+  painLabels.forEach((key, i) => {
+    const sel = document.querySelector(`#pain-${i} .scale-btn.sel`);
+    painScores[key] = sel ? sel.textContent.trim() : '';
+  });
+
+  return {
+    submitted_at: now.toISOString(),
+    submitted_at_local: getLocalDateTimeString(now),
+    role: getSelectedWithOther('q-role', 'q-role-other'),
+    company_size: getSelected('q-size'),
+    task_tracker: getSelectedWithOther('q-tracker', 'q-tracker-other'),
+    prd_hours_per_week: getSelected('q-prd-time'),
+    workflow_description: document.getElementById('q-workflow').value.trim(),
+    ...painScores,
+    biggest_frustration: document.getElementById('q-frustration').value.trim(),
+    ai_usage: getSelected('q-ai-use'),
+    ai_tasks: getSelectedWithOther('q-ai-tasks', 'q-ai-tasks-other'),
+    ai_disappointments: document.getElementById('q-ai-disappoint').value.trim(),
+    concept_value_score: getScale('q-value'),
+    most_valued_stage: getSelected('q-stage'),
+    churn_reasons: getSelected('q-churn'),
+    willing_to_pay: getSelected('q-price'),
+    budget_approver: getSelected('q-buyer'),
+    open_to_followup: getSelected('q-followup'),
+    email: document.getElementById('q-email').value.trim(),
+  };
+}
+
+function requireSingle(groupId, message) {
+  if (!getSelected(groupId)) {
+    alert(message);
+    return false;
+  }
+  return true;
+}
+
+function requireMulti(groupId, message) {
+  if (![...document.querySelectorAll(`#${groupId} .chip.sel`)].length) {
+    alert(message);
+    return false;
+  }
+  return true;
+}
+
+function requireText(inputId, message) {
+  const val = document.getElementById(inputId).value.trim();
+  if (!val) {
+    alert(message);
+    return false;
+  }
+  return true;
+}
+
+function validateSection(sectionNumber) {
+  if (sectionNumber === 1) {
+    if (!requireSingle('q-role', 'Please select your role.')) return false;
+    if (getSelected('q-role') === 'Other' && !requireText('q-role-other', 'Please enter your role.')) return false;
+    if (!requireSingle('q-size', 'Please select your company size.')) return false;
+    if (!requireSingle('q-tracker', 'Please select your primary task tracker.')) return false;
+    if (getSelected('q-tracker') === 'Other' && !requireText('q-tracker-other', 'Please enter your task tracker.')) return false;
+    return true;
+  }
+
+  if (sectionNumber === 2) {
+    if (!requireSingle('q-prd-time', 'Please select weekly hours on PRDs/specs.')) return false;
+    if (!requireText('q-workflow', 'Please describe your workflow.')) return false;
+    return true;
+  }
+
+  if (sectionNumber === 3) {
+    for (let i = 0; i < painAreas.length; i++) {
+      if (!getScale(`pain-${i}`)) {
+        alert('Please rate all pain areas before continuing.');
+        return false;
+      }
+    }
+    if (!requireText('q-frustration', 'Please describe your biggest recurring frustration.')) return false;
+    return true;
+  }
+
+  if (sectionNumber === 4) {
+    if (!requireSingle('q-ai-use', 'Please select your AI usage.')) return false;
+    if (!requireMulti('q-ai-tasks', 'Please select at least one AI task.')) return false;
+    const aiTasks = [...document.querySelectorAll('#q-ai-tasks .chip.sel')].map(chip => chip.textContent.trim());
+    if (aiTasks.includes('Other') && !requireText('q-ai-tasks-other', 'Please enter your other AI use case.')) return false;
+    if (!requireText('q-ai-disappoint', 'Please share what disappointed you about AI tools.')) return false;
+    return true;
+  }
+
+  if (sectionNumber === 5) {
+    if (!getScale('q-value')) {
+      alert('Please rate the concept value.');
+      return false;
+    }
+    if (!requireSingle('q-stage', 'Please choose which stage matters most to you.')) return false;
+    if (!requireMulti('q-churn', 'Please select at least one reason that would make you stop using the tool.')) return false;
+    return true;
+  }
+
+  if (sectionNumber === 6) {
+    if (!requireSingle('q-price', 'Please select a pricing range.')) return false;
+    if (!requireSingle('q-buyer', 'Please select who approves this type of tool.')) return false;
+    if (!requireSingle('q-followup', 'Please select your follow-up preference.')) return false;
+    if (!requireText('q-email', 'Please enter your email or LinkedIn.')) return false;
+    return true;
+  }
+
+  return true;
+}
+
+async function submit() {
+  if (!validateSection(6)) return;
+
+  const btn = document.querySelector('#s6 .btn-next');
+  btn.textContent = 'Submitting…';
+  btn.disabled = true;
+
+  const data = collectData();
+
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.warn('Submission error (data may still have been saved):', err);
+  }
+
+  goTo('done');
+}
+
+buildPainScales();
+</script>
+</body>
+</html>
